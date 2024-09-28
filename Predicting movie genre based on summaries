@@ -1,0 +1,94 @@
+### 1. Data Preparation 
+
+You'll need a dataset of movie summaries and their corresponding genres. For simplicity, let's assume you have a dataset in a CSV file with columns `summary` and `genre`. 
+
+```python
+import pandas as pd 
+
+# Load your dataset
+df = pd.read_csv('movie_summaries.csv') 
+
+# Inspect the data
+print(df.head())
+``` 
+
+### 2. Text Preprocessing 
+
+Preprocess the text data to clean and prepare it for feature extraction. 
+
+```python
+import re
+from sklearn.model_selection import train_test_split 
+
+def preprocess_text(text):
+    text = text.lower()  # Convert to lowercase
+    text = re.sub(r'\d+', '', text)  # Remove numbers
+    text = re.sub(r'[^\w\s]', '', text)  # Remove punctuation
+    return text 
+
+df['cleaned_summary'] = df['summary'].apply(preprocess_text) 
+
+# Split the data into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(df['cleaned_summary'], df['genre'], test_size=0.2, random_state=42)
+``` 
+
+### 3. Feature Extraction 
+
+Convert the text data into numerical features using TF-IDF. 
+
+```python
+from sklearn.feature_extraction.text import TfidfVectorizer 
+
+vectorizer = TfidfVectorizer(stop_words='english', max_features=5000)
+X_train_tfidf = vectorizer.fit_transform(X_train)
+X_test_tfidf = vectorizer.transform(X_test)
+``` 
+
+### 4. Model Training 
+
+Train a classification model. For this example, we’ll use a Multinomial Naive Bayes classifier. 
+
+```python
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.metrics import classification_report, accuracy_score 
+
+# Initialize and train the model
+model = MultinomialNB()
+model.fit(X_train_tfidf, y_train) 
+
+# Make predictions
+y_pred = model.predict(X_test_tfidf) 
+
+# Evaluate the model
+print(f'Accuracy: {accuracy_score(y_test, y_pred)}')
+print(classification_report(y_test, y_pred))
+``` 
+
+### 5. Model Evaluation and Tuning 
+
+Evaluate the model's performance and adjust parameters if necessary. You can also try different algorithms and techniques like: 
+
+- **Logistic Regression**
+- **Support Vector Machines (SVM)**
+- **Deep Learning models** (using libraries like TensorFlow or PyTorch) 
+
+### 6. Example Usage 
+
+Once the model is trained, you can use it to predict genres for new movie summaries. 
+
+```python
+def predict_genre(summary):
+    summary_cleaned = preprocess_text(summary)
+    summary_tfidf = vectorizer.transform([summary_cleaned])
+    genre = model.predict(summary_tfidf)
+    return genre[0] 
+
+# Example prediction
+new_summary = "A young wizard goes on a magical adventure to defeat a dark sorcerer."
+print(f'Predicted Genre: {predict_genre(new_summary)}')
+``` 
+
+
+```sh
+pip install pandas scikit-learn nltk
+```
